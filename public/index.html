@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+</head>
+<body>
+  <h1>Expense Tracker</h1>
+
+  <form id="expenseForm" action="/expense" method="post">
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description" required>
+    <br>
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount" required>
+    <br>
+    <button type="submit">Add Expense</button>
+  </form>
+
+  <ul id="expenseList"></ul>
+
+  <script>
+    async function fetchExpenses() {
+      const response = await fetch('/');
+      const expenses = await response.json();
+
+      const expenseList = document.getElementById('expenseList');
+      expenseList.innerHTML = '';
+
+      expenses.forEach((expense) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `${expense.description}: $${expense.amount} 
+                              <button onclick="deleteExpense('${expense._id}')">Delete</button>
+                              <button onclick="editExpense('${expense._id}')">Edit</button>`;
+        expenseList.appendChild(listItem);
+      });
+    }
+
+    async function deleteExpense(id) {
+      await fetch(`/expense/${id}`, { method: 'DELETE' });
+      fetchExpenses();
+    }
+
+    async function editExpense(id) {
+      const newDescription = prompt('Enter new description:');
+      const newAmount = prompt('Enter new amount:');
+
+      await fetch(`/expense/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newDescription, amount: newAmount }),
+      });
+
+      fetchExpenses();
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      fetchExpenses();
+    });
+
+    fetchExpenses();
+  </script>
+</body>
+</html>
